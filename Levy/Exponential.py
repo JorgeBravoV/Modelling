@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=10
+L=100
 N_pasos=10
 alpha_0=1.5
 alpha_f=3
@@ -12,7 +12,7 @@ promedios = []
 alphas = []
 
 
-np.random.seed(22)
+np.random.seed(232)
 
 for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
     suma=0
@@ -91,3 +91,4 @@ plt.title(f'L = {L},N_pasos = {N_pasos}, alpha_range = {alpha_0}-{alpha_f}, Delt
 plt.grid(True)
 plt.savefig(f"Results/Levy/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.png", dpi=150, bbox_inches='tight')
 plt.show()
+
