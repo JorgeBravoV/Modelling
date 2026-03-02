@@ -1,0 +1,281 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from pathlib import Path
+import time
+
+# ========== CONFIGURACIÓN ==========
+L = 100
+N_simulaciones = 10  # Reducido para pruebas
+alpha_0 = 0.1
+alpha_f = 10.0
+delta_alpha = 0.15
+capture_radius = 2.5  # Radio más realista
+max_steps = 7500
+
+np.random.seed(243)
+
+Path('L-vy-Flight/Basurilla').mkdir(parents=True, exist_ok=True)
+Path('L-vy-Flight/Results/Levy').mkdir(parents=True, exist_ok=True)
+
+# Listas para resultados
+alphas = []
+promedios_con_fallos = []  # Promedio INCLUYENDO fallos como max_steps
+promedios_solo_exitos = []  # Promedio solo de simulaciones exitosas
+tasas_exito = []  # Porcentaje de éxitos
+scores = []  # Score combinado (tasa éxito / pasos normalizados)
+
+print("=== SIMULACIÓN VUELO DE LÉVY ===")
+print(f"Simulaciones por alpha: {N_simulaciones}")
+print(f"Radio captura: {capture_radius}, Máx pasos: {max_steps}")
+print("-" * 50)
+
+start_time = time.time()
+
+# ========== SIMULACIONES POR ALPHA ==========
+for alpha in np.arange(alpha_0, alpha_f + delta_alpha/2, delta_alpha):
+    alpha = round(alpha, 2)
+    pasos_totales = []
+    pasos_exitos = []
+    
+    print(f"\nAlpha = {alpha:.2f}")
+    
+    for sim in range(N_simulaciones):
+        # Configuración inicial
+        x0 = np.random.uniform(0, L)
+        y0 = np.random.uniform(0, L)
+        x_prey = np.random.uniform(0, L)
+        y_prey = np.random.uniform(0, L)
+        
+        x, y = x0, y0
+        distance = np.sqrt((x - x_prey)**2 + (y - y_prey)**2)
+        steps = 0
+        
+        # Búsqueda
+        while distance > capture_radius and steps < max_steps:
+            # Movimiento Lévy (tu versión original)
+            step_x = np.random.exponential(alpha)
+            step_y = np.random.exponential(alpha)
+            
+            x += step_x * np.random.choice([-1, 1])
+            y += step_y * np.random.choice([-1, 1])
+            
+            # Mantener en dominio
+            x = np.clip(x, 0, L)
+            y = np.clip(y, 0, L)
+            
+            distance = np.sqrt((x - x_prey)**2 + (y - y_prey)**2)
+            steps += 1
+        
+        pasos_totales.append(steps)
+        if steps < max_steps:  # Éxito
+            pasos_exitos.append(steps)
+        
+        # Progress bar
+        if (sim + 1) % max(1, N_simulaciones//20) == 0:
+            print(f"  [{sim+1:3d}/{N_simulaciones}]", end='\r')
+    
+    # ========== CÁLCULO DE ESTADÍSTICAS CORREGIDAS ==========
+    # 1. Promedio INCLUYENDO fallos (fallos = max_steps)
+    promedio_con_fallos = np.mean(pasos_totales)
+    
+    # 2. Promedio solo éxitos
+    if len(pasos_exitos) > 0:
+        promedio_solo_exitos = np.mean(pasos_exitos)
+    else:
+        promedio_solo_exitos = max_steps
+    
+    # 3. Tasa de éxito
+    tasa = len(pasos_exitos) / N_simulaciones * 100
+    
+    # 4. Score combinado (más alto = mejor)
+    # Score = (tasa éxito) * (eficiencia en pasos)
+    eficiencia = 1 - (promedio_con_fallos / max_steps)  # 1 = perfecto, 0 = pésimo
+    score = tasa * eficiencia
+    
+    # Guardar resultados
+    alphas.append(alpha)
+    promedios_con_fallos.append(promedio_con_fallos)
+    promedios_solo_exitos.append(promedio_solo_exitos)
+    tasas_exito.append(tasa)
+    scores.append(score)
+    
+    # Mostrar resultados
+    print(f"  Alpha {alpha:.2f}:")
+    print(f"    • Tasa éxito: {tasa:5.1f}% ({len(pasos_exitos)}/{N_simulaciones})")
+    print(f"    • Prom. con fallos: {promedio_con_fallos:6.1f} pasos")
+    print(f"    • Prom. solo éxitos: {promedio_solo_exitos:6.1f} pasos")
+    print(f"    • Score: {score:6.1f}")
+
+# Tiempo total
+elapsed_time = time.time() - start_time
+print(f"\n{'='*50}")
+print(f"⏱️  Tiempo total: {elapsed_time:.1f}s")
+print(f"📊 Total simulaciones: {len(alphas) * N_simulaciones:,}")
+
+# ========== ANÁLISIS DE RESULTADOS ==========
+print(f"\n{'='*50}")
+print("📈 ANÁLISIS DE RESULTADOS:")
+
+# Encontrar mejor alpha según diferentes criterios
+if len(alphas) > 0:
+    # 1. Mejor por score (recomendado)
+    idx_mejor_score = np.argmax(scores)
+    mejor_alpha_score = alphas[idx_mejor_score]
+    
+    # 2. Mejor por promedio con fallos
+    idx_mejor_promedio = np.argmin(promedios_con_fallos)
+    mejor_alpha_promedio = alphas[idx_mejor_promedio]
+    
+    # 3. Mejor por tasa de éxito
+    idx_mejor_tasa = np.argmax(tasas_exito)
+    mejor_alpha_tasa = alphas[idx_mejor_tasa]
+    
+    print(f"\n🏆 MEJORES ALPHAS:")
+    print(f"   • Por SCORE: α={mejor_alpha_score:.2f} (score={scores[idx_mejor_score]:.1f})")
+    print(f"   • Por PROMEDIO: α={mejor_alpha_promedio:.2f} ({promedios_con_fallos[idx_mejor_promedio]:.1f} pasos)")
+    print(f"   • Por TASA ÉXITO: α={mejor_alpha_tasa:.2f} ({tasas_exito[idx_mejor_tasa]:.1f}% éxito)")
+    
+    # Usar el alpha con mejor score para visualizar
+    mejor_alpha = mejor_alpha_score
+else:
+    mejor_alpha = (alpha_0 + alpha_f) / 2
+
+# ========== GRÁFICO 1: COMPARACIÓN COMPLETA ==========
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig.suptitle(f'Análisis de Eficiencia - Vuelo de Lévy\nL={L}, N={N_simulaciones}/α, Radio={capture_radius}', 
+             fontsize=16, y=1.02)
+
+# Subplot 1: Promedio INCLUYENDO fallos
+ax1 = axes[0, 0]
+ax1.plot(alphas, promedios_con_fallos, 'b-o', linewidth=2, markersize=6, label='Con fallos')
+ax1.axhline(y=max_steps, color='r', linestyle='--', alpha=0.5, label='Límite (fallo)')
+ax1.set_xlabel('Alpha', fontsize=11)
+ax1.set_ylabel('Pasos promedio (incluye fallos)', fontsize=11)
+ax1.set_title('Promedio INCLUYENDO simulaciones fallidas', fontsize=12)
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# Marcar el mejor (menor promedio con fallos)
+if 'idx_mejor_promedio' in locals():
+    ax1.plot(mejor_alpha_promedio, promedios_con_fallos[idx_mejor_promedio], 
+             'g*', markersize=15, label='Mejor')
+
+# Subplot 2: Tasa de éxito
+ax2 = axes[0, 1]
+bars = ax2.bar(range(len(alphas)), tasas_exito, color='lightcoral', 
+               edgecolor='darkred', alpha=0.7)
+ax2.set_xlabel('Alpha (índice)', fontsize=11)
+ax2.set_ylabel('Tasa de éxito (%)', fontsize=11)
+ax2.set_title('Porcentaje de simulaciones exitosas', fontsize=12)
+ax2.set_xticks(range(len(alphas)))
+ax2.set_xticklabels([f'{a:.2f}' for a in alphas], rotation=45, fontsize=9)
+ax2.grid(True, alpha=0.3, axis='y')
+
+# Resaltar el mejor
+if 'idx_mejor_tasa' in locals():
+    bars[idx_mejor_tasa].set_color('limegreen')
+    bars[idx_mejor_tasa].set_edgecolor('darkgreen')
+
+# Subplot 3: Score combinado
+ax3 = axes[1, 0]
+ax3.plot(alphas, scores, 'g-s', linewidth=2, markersize=6, label='Score')
+ax3.set_xlabel('Alpha', fontsize=11)
+ax3.set_ylabel('Score (tasa × eficiencia)', fontsize=11)
+ax3.set_title('Score combinado (más alto = mejor)', fontsize=12)
+ax3.grid(True, alpha=0.3)
+ax3.legend()
+
+# Marcar el mejor score
+if 'idx_mejor_score' in locals():
+    ax3.plot(mejor_alpha_score, scores[idx_mejor_score], 
+             'r*', markersize=15, label='Mejor score')
+
+# Subplot 4: Comparación directa
+ax4 = axes[1, 1]
+# Normalizar para comparar
+prom_norm = np.array(promedios_con_fallos) / max_steps
+score_norm = np.array(scores) / max(scores) if max(scores) > 0 else scores
+
+width = 0.35
+x = range(len(alphas))
+ax4.bar([i - width/2 for i in x], prom_norm, width, 
+        label='Pasos (norm)', color='blue', alpha=0.6)
+ax4.bar([i + width/2 for i in x], score_norm, width, 
+        label='Score (norm)', color='green', alpha=0.6)
+ax4.set_xlabel('Alpha (índice)', fontsize=11)
+ax4.set_ylabel('Valor normalizado', fontsize=11)
+ax4.set_title('Comparación normalizada', fontsize=12)
+ax4.set_xticks(x)
+ax4.set_xticklabels([f'{a:.2f}' for a in alphas], rotation=45, fontsize=9)
+ax4.legend()
+ax4.grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.savefig(f'L-vy-Flight/Results/Levy/analisis_completo_L{L}_N{N_simulaciones}.png', 
+            dpi=150, bbox_inches='tight')
+plt.show()
+
+# ========== GRÁFICO 2: RESUMEN DECISIVO ==========
+plt.figure(figsize=(12, 7))
+
+# Gráfico principal: Score (métrica decisiva)
+plt.plot(alphas, scores, 'g-', linewidth=3, label='Score (tasa × eficiencia)', zorder=3)
+plt.fill_between(alphas, 0, scores, alpha=0.2, color='green')
+
+# Gráfico secundario: Promedio con fallos
+ax2 = plt.gca().twinx()
+ax2.plot(alphas, promedios_con_fallos, 'b--', linewidth=2, alpha=0.7, label='Pasos promedio', zorder=2)
+ax2.fill_between(alphas, promedios_con_fallos, max_steps, alpha=0.1, color='blue')
+
+# Línea de límite
+ax2.axhline(y=max_steps, color='r', linestyle=':', linewidth=2, alpha=0.5, label='Límite pasos', zorder=1)
+
+# Marcador del mejor alpha
+if 'idx_mejor_score' in locals():
+    plt.axvline(x=mejor_alpha_score, color='orange', linestyle='-', 
+                linewidth=2, alpha=0.8, label=f'Mejor α={mejor_alpha_score:.2f}', zorder=4)
+    
+    # Punto en el gráfico
+    plt.plot(mejor_alpha_score, scores[idx_mejor_score], 'o', 
+             markersize=12, color='orange', markeredgecolor='black', 
+             markeredgewidth=2, zorder=5)
+
+# Configuración
+plt.xlabel('Alpha (parámetro de distribución exponencial)', fontsize=12)
+plt.ylabel('Score combinado', fontsize=12, color='green')
+ax2.set_ylabel('Pasos promedio (incluye fallos)', fontsize=12, color='blue')
+
+plt.title(f'DECISIÓN ÓPTIMA - Vuelo de Lévy\n' +
+          f'Alpha óptimo: {mejor_alpha:.2f} (Score={scores[idx_mejor_score]:.1f}, ' +
+          f'{tasas_exito[idx_mejor_score]:.1f}% éxito, ' +
+          f'{promedios_con_fallos[idx_mejor_promedio]:.0f} pasos promedio)', 
+          fontsize=14, pad=20)
+
+# Leyendas combinadas
+lines1, labels1 = plt.gca().get_legend_handles_labels()
+lines2, labels2 = ax2.get_legend_handles_labels()
+plt.gca().legend(lines1 + lines2, labels1 + labels2, loc='upper left', fontsize=10)
+
+plt.grid(True, alpha=0.3, zorder=0)
+plt.tight_layout()
+plt.savefig(f'L-vy-Flight/Results/Levy/decision_optima_L{L}.png', 
+            dpi=150, bbox_inches='tight')
+plt.show()
+
+# ========== RESUMEN FINAL ==========
+print(f"\n{'='*60}")
+print("🎯 RECOMENDACIÓN FINAL:")
+print(f"{'='*60}")
+print(f"Alpha seleccionado para optimización: {mejor_alpha:.2f}")
+print(f"Razón: Mejor balance entre tasa de éxito y eficiencia en pasos")
+print(f"\n📊 ESTADÍSTICAS DEL ALPHA SELECCIONADO:")
+print(f"   • Score: {scores[idx_mejor_score]:.1f}")
+print(f"   • Tasa de éxito: {tasas_exito[idx_mejor_score]:.1f}%")
+print(f"   • Pasos promedio (con fallos): {promedios_con_fallos[idx_mejor_score]:.1f}")
+print(f"   • Pasos promedio (solo éxitos): {promedios_solo_exitos[idx_mejor_score]:.1f}")
+print(f"\n💡 INTERPRETACIÓN:")
+print(f"   Con alpha={mejor_alpha:.2f}, se espera que:")
+print(f"   - {tasas_exito[idx_mejor_score]:.1f}% de las búsquedas encuentren la presa")
+print(f"   - En promedio, se necesitan {promedios_con_fallos[idx_mejor_score]:.0f} pasos")
+print(f"   - Este valor balancea probabilidad de éxito con eficiencia")
+print(f"{'='*60}")
