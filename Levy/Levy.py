@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=50
-N_pasos=10
-alpha_0=1.2
-alpha_f=3.2
-delta_alpha=0.2
+L=100
+N_pasos=2000
+alpha_0=1.6
+alpha_f=3.0
+delta_alpha=0.1
 l_min=1.0 #necesario para normalizar la power law
 suma=0
 
@@ -36,20 +36,37 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
 
         distance_square = (x - x_prey)**2 + (y - y_prey)**2
 
-        while distance_square > 1:
-            
-            # --- LEVY FLIGHT ---
-            
-            angle = np.random.uniform(0, 2 * np.pi)
-            step_length = power_law_step(alpha, l_min)
-            
-            x+= step_length * np.cos(angle)
-            y+= step_length * np.sin(angle)
+        inv_exp = -1/(alpha - 1)   # calcular fuera del while
 
-            x = 0 if x < 0 else L if x > L else x
-            y = 0 if y < 0 else L if y > L else y
-            distance_square = (x - x_prey)**2 + (y - y_prey)**2
-            suma+=1
+        while distance_square > 1:
+
+            # Dirección aleatoria uniforme
+            dx, dy = np.random.normal(size=2)
+            norm = (dx*dx + dy*dy)**0.5
+            dx /= norm
+            dy /= norm
+
+            # Paso power-law (inline)
+            u = np.random.rand()
+            step_length = l_min * (1 - u)**inv_exp
+
+            x += step_length * dx
+            y += step_length * dy
+
+            # Clip manual rápido
+            if x < 0: x = 0
+            elif x > L: x = L
+
+            if y < 0: y = 0
+            elif y > L: y = L
+
+            dxp = x - x_prey
+            dyp = y - y_prey
+            distance_square = dxp*dxp + dyp*dyp
+
+            suma += 1
+        if i%100==0:
+            print(f"Paso {i} - Distance to prey: {np.sqrt(distance_square):.2f} - Steps so far: {suma}")
     print(f"Alpha {alpha}")
  
     promedio=(suma-1)/N_pasos
