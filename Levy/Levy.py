@@ -6,6 +6,7 @@ N_pasos=10
 alpha_0=1.5
 alpha_f=3
 delta_alpha=0.2
+l_min=1.0 #necesario para normalizar la power law
 suma=0
 
 promedios = []
@@ -13,6 +14,11 @@ alphas = []
 
 
 np.random.seed(232)
+
+#----------- FUNCION LEVY (POWER LAW) -----------
+def power_law_step(alpha, l_min):
+    u=np.random.uniform(0, 1)
+    return l_min*(1-u)**(-1/(alpha-1))
 
 for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
     suma=0
@@ -31,12 +37,14 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
         distance_square = (x - x_prey)**2 + (y - y_prey)**2
 
         while distance_square > 1:
-
-            sign_x = np.random.randint(0, 2)*2 - 1
-            sign_y = np.random.randint(0, 2)*2 - 1
-
-            x += np.random.exponential(alpha) * sign_x
-            y += np.random.exponential(alpha) * sign_y
+            
+            # --- LEVY FLIGHT ---
+            
+            angle = np.random.uniform(0, 2 * np.pi)
+            step_length = power_law_step(alpha, l_min)
+            
+            x+= step_length * np.cos(angle)
+            y+= step_length * np.sin(angle)
 
             x = 0 if x < 0 else L if x > L else x
             y = 0 if y < 0 else L if y > L else y
@@ -56,8 +64,11 @@ distance_square = (x - x_prey)**2 + (y - y_prey)**2
 positions = [(x, y)]
 
 while distance_square > 1:
-    x += np.random.exponential(alpha) * np.random.choice([-1, 1])
-    y += np.random.exponential(alpha) * np.random.choice([-1, 1])
+    angle = np.random.uniform(0, 2*np.pi)
+    step_length = power_law_step(alpha, l_min)
+
+    x += step_length * np.cos(angle)
+    y += step_length * np.sin(angle)
 
     x = np.clip(x, 0, L)
     y = np.clip(y, 0, L)
