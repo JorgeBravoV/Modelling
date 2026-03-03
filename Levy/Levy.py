@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=100
+L=50
 N_pasos=10
-alpha_0=1.5
-alpha_f=3
+alpha_0=1.2
+alpha_f=3.2
 delta_alpha=0.2
 l_min=1.0 #necesario para normalizar la power law
 suma=0
