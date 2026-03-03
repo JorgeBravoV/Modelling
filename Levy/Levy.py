@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=100
-N_pasos=2000
-alpha_0=1.6
-alpha_f=3.0
+L=50
+N_pasos=10000
+alpha_0=1.1
+alpha_f=3.1
 delta_alpha=0.1
 l_min=1.0 #necesario para normalizar la power law
 suma=0
@@ -13,7 +13,7 @@ promedios = []
 alphas = []
 
 
-np.random.seed(232)
+np.random.seed(832)
 
 #----------- FUNCION LEVY (POWER LAW) -----------
 def power_law_step(alpha, l_min):
