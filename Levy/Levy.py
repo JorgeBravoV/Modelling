@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=50
-N_pasos=10000
-alpha_0=1.1
-alpha_f=3.1
-delta_alpha=0.1
+L=100
+N_pasos=75000
+alpha_0=1.8
+alpha_f=2.5
+delta_alpha=0.05
 l_min=1.0 #necesario para normalizar la power law
 suma=0
 
@@ -13,7 +13,7 @@ promedios = []
 alphas = []
 
 
-np.random.seed(832)
+np.random.seed(22)
 
 #----------- FUNCION LEVY (POWER LAW) -----------
 def power_law_step(alpha, l_min):
@@ -65,7 +65,7 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
             distance_square = dxp*dxp + dyp*dyp
 
             suma += 1
-        if i%100==0:
+        if i%1000==0:
             print(f"Paso {i} - Distance to prey: {np.sqrt(distance_square):.2f} - Steps so far: {suma}")
     print(f"Alpha {alpha}")
  
