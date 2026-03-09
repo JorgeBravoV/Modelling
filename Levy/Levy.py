@@ -2,16 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 L=50
-N_pasos=10000
+N_pasos=10
 alpha_0=1.1
 alpha_f=3.1
 delta_alpha=0.1
 l_min=1.0 #necesario para normalizar la power law
-suma=0
+pasos=0
 
 promedios = []
+steps = []
 alphas = []
-
+error= []
 
 np.random.seed(22)
 
@@ -21,9 +22,9 @@ def power_law_step(alpha, l_min):
     return l_min*(1-u)**(-1/(alpha-1))
 
 for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
-    suma=0
+    
     for i in range(N_pasos):
-
+        pasos=0
         x0 = np.random.uniform(0, L)
         y0 = np.random.uniform(0, L)
 
@@ -39,7 +40,7 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
         inv_exp = -1/(alpha - 1)   # calcular fuera del while
 
         while distance_square > 1:
-
+        
             # Dirección aleatoria uniforme
             dx, dy = np.random.normal(size=2)
             norm = (dx*dx + dy*dy)**0.5
@@ -64,14 +65,26 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
             dyp = y - y_prey
             distance_square = dxp*dxp + dyp*dyp
 
-            suma += 1
+            pasos += 1
+        
+        steps.append(pasos)
         if i%1000==0:
-            print(f"Paso {i} - Distance to prey: {np.sqrt(distance_square):.2f} - Steps so far: {suma}")
+            print(f"Paso {i} - Distance to prey: {np.sqrt(distance_square):.2f} - Steps so far: {pasos}")
     print(f"Alpha {alpha}")
  
-    promedio=(suma-1)/N_pasos
+    promedio=(np.mean(steps))
+    std = np.std(steps)
+    
     alphas.append(alpha)
     promedios.append(promedio)
+    error.append(std/np.sqrt(N_pasos))  # Error estándar de la media
+    steps.clear()  # Limpiar para la siguiente alpha
+
+# Save results to file
+with open(f'Results/Data/Levy/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', 'w') as f:
+    f.write("Alpha\tAverage_Steps\tStd_Dev\n")
+    for alpha, promedio, std in zip(alphas, promedios, error):
+        f.write(f"{alpha:.2f}\t{promedio:.2f}\t{std:.2f}\n")
 
 #AQUÍ HACE UNO FUERA DE SIMULACIÓN PARA PLOTEARLO
 #==========================================================================================
@@ -112,7 +125,7 @@ plt.show()
 #===========================================================================================================
 
 plt.figure(figsize=(8, 6))
-plt.plot(alphas, promedios, 'ro-', alpha=0.7)  
+plt.errorbar(alphas, promedios, yerr=error, fmt='ro-', alpha=0.7, capsize=5, ecolor='black')
 plt.xlabel('Alpha')
 plt.ylabel('Average Number of Steps to Reach Prey')
 plt.title(f'L = {L},N_pasos = {N_pasos}, alpha_range = {alpha_0}-{alpha_f}, Delta_alpha = {delta_alpha}')
