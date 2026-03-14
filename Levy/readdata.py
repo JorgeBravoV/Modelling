@@ -3,10 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 L=50
-N_pasos=10
-alpha_0=1.1
-alpha_f=3.1
-delta_alpha=0.1
+N_pasos=100000
+alpha_0=1.9
+alpha_f=2.5
+delta_alpha=0.01
 
 # Read the data file
 data = np.loadtxt(f'Results/Levy/Data/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', skiprows=1)
