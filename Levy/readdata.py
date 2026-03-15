@@ -2,10 +2,10 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-L=100
+L=25
 N_pasos=100000
 alpha_0=2.0
-alpha_f=2.2
+alpha_f=2.4
 delta_alpha=0.01
 
 # Read the data file
