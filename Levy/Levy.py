@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 L=100
 N_pasos=100000
-alpha_0=1.9
+alpha_0=2.0
 alpha_f=2.5
 delta_alpha=0.01
 l_min=1.0 #necesario para normalizar la power law
