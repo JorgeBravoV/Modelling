@@ -1,0 +1,3 @@
+Alpha	Average_Steps	Std_Dev
+2.20	557.70	248.30
+2.30	579.80	160.54
