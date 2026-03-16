@@ -81,7 +81,7 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
     steps.clear()  # Limpiar para la siguiente alpha
 
 # Save results to file
-with open(f'Results/Levy/Data/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', 'w') as f:
+with open(f'Results/Levy/Data/2D/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', 'w') as f:
     f.write("Alpha\tAverage_Steps\tStd_Dev\n")
     for alpha, promedio, std in zip(alphas, promedios, error):
         f.write(f"{alpha:.2f}\t{promedio:.2f}\t{std:.2f}\n")
