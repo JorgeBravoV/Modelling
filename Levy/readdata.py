@@ -2,12 +2,12 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-L=25
-N_pasos=100000
-alpha_0=2.0
+L=10
+N_pasos=10
+alpha_0=2.2
 alpha_f=2.4
-delta_alpha=0.01
-D=2
+delta_alpha=0.1
+D=3
 
 # Read the data file
 data = np.loadtxt(f'Results/Levy/Data/{D}D/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', skiprows=1)
