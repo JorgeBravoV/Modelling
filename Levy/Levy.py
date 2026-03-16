@@ -5,7 +5,7 @@ L=100
 N_pasos=100000
 alpha_0=2.2
 alpha_f=2.4
-delta_alpha=0.01
+delta_alpha=0.1
 l_min=1.0 #necesario para normalizar la power law
 pasos=0
 
