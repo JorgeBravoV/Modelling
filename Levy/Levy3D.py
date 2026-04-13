@@ -2,9 +2,9 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-L=10
-N_pasos=10000
-alpha_0=2.5
+L=20
+N_pasos=5000
+alpha_0=3.0
 alpha_f=4.0
 delta_alpha=0.05
 l_min=1.0 #necesario para normalizar la power law
