@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-L=25
+L=10
 N_pasos=1000
 alpha_0=1
 alpha_f=8
-delta_alpha=0.05
+delta_alpha=0.01
 suma=0
 
 promedios = []
