@@ -2,11 +2,11 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-L=20
-N_pasos=5000
-alpha_0=3.0
+L=10
+N_pasos=100000
+alpha_0=2.5
 alpha_f=4.0
-delta_alpha=0.05
+delta_alpha=0.01
 l_min=1.0 #necesario para normalizar la power law
 pasos=0
 
@@ -81,13 +81,7 @@ for alpha in np.arange(alpha_0,alpha_f,delta_alpha):
             print(f"Paso {i} - Distance to prey: {np.sqrt(distance_square):.2f} - Steps so far: {pasos}")
     print(f"Alpha {alpha}")
  
-    promedio=(np.mean(steps))
-    std = np.std(steps)
-    
-    alphas.append(alpha)
-    promedios.append(promedio)
-    error.append(std/np.sqrt(N_pasos))  # Error estándar de la media
-    steps.clear()  # Limpiar para la siguiente alpha
+
 
 # Save results to file
 with open(f'Results/Levy/Data/3D/L{L}_Npasos{N_pasos}_alpharange{alpha_0}-{alpha_f}_deltaalpha{delta_alpha}.txt', 'w') as f:
